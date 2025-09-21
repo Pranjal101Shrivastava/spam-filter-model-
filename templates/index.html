@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ TF-IDF Spam Filter</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwind-css/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">
+                🛡️ TF-IDF Spam Filter
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Advanced spam detection using Term Frequency-Inverse Document Frequency (TF-IDF) 
+                with spelling mistake detection. Test your messages below!
+            </p>
+        </div>
+
+        <!-- Main Interface -->
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+                <div class="mb-6">
+                    <label for="messageInput" class="block text-lg font-semibold text-gray-700 mb-2">
+                        Enter your message to test:
+                    </label>
+                    <textarea 
+                        id="messageInput" 
+                        class="w-full p-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none transition-colors"
+                        rows="4"
+                        placeholder="Type or paste your message here... (e.g., 'Free money! Click here now!' or 'Hi, how are you?')"
+                    ></textarea>
+                </div>
+
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <button 
+                        id="predictBtn" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center"
+                    >
+                        <i class="fas fa-shield-alt mr-2"></i>
+                        Analyze Message
+                    </button>
+                    
+                    <button 
+                        id="clearBtn" 
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                    >
+                        <i class="fas fa-eraser mr-2"></i>
+                        Clear
+                    </button>
+                    
+                    <button 
+                        id="exampleBtn" 
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                    >
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        Load Examples
+                    </button>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results" class="hidden">
+                    <div class="border-t-2 border-gray-200 pt-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Analysis Results:</h3>
+                        
+                        <!-- Prediction Result -->
+                        <div id="predictionResult" class="mb-6 p-4 rounded-lg"></div>
+                        
+                        <!-- Details Grid -->
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Left Column -->
+                            <div>
+                                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                                    <h4 class="font-semibold text-gray-700 mb-2">
+                                        <i class="fas fa-search mr-2"></i>Spam Words Detected:
+                                    </h4>
+                                    <div id="spamWords" class="text-sm"></div>
+                                </div>
+                                
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-700 mb-2">
+                                        <i class="fas fa-chart-bar mr-2"></i>Message Statistics:
+                                    </h4>
+                                    <div id="messageStats" class="text-sm"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column -->
+                            <div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-700 mb-2">
+                                        <i class="fas fa-weight-hanging mr-2"></i>Top Contributing Words:
+                                    </h4>
+                                    <div id="importantWords" class="text-sm"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Example Messages Section -->
+            <div id="examplesSection" class="hidden bg-white rounded-2xl shadow-xl p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-clipboard-list mr-2"></i>Example Messages
+                </h3>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-red-600 mb-3">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Spam Examples:
+                        </h4>
+                        <div id="spamExamples" class="space-y-2"></div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-green-600 mb-3">
+                            <i class="fas fa-check-circle mr-2"></i>Legitimate Examples:
+                        </h4>
+                        <div id="legitimateExamples" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Information -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 mt-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-info-circle mr-2"></i>How This Works
+                </h3>
+                
+                <div class="grid md:grid-cols-3 gap-6 text-sm">
+                    <div class="text-center">
+                        <div class="bg-blue-100 p-4 rounded-lg mb-3">
+                            <i class="fas fa-calculator text-2xl text-blue-600"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">TF-IDF Analysis</h4>
+                        <p class="text-gray-600">Calculates word importance using Term Frequency × Inverse Document Frequency</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="bg-green-100 p-4 rounded-lg mb-3">
+                            <i class="fas fa-spell-check text-2xl text-green-600"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">Spelling Detection</h4>
+                        <p class="text-gray-600">Catches spam tricks like "fr33" → "free" and "m0ney" → "money"</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="bg-purple-100 p-4 rounded-lg mb-3">
+                            <i class="fas fa-brain text-2xl text-purple-600"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">Machine Learning</h4>
+                        <p class="text-gray-600">Uses Naive Bayes classifier trained on spam patterns</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let examples = {};
+        
+        // Load examples when page loads
+        fetch('/examples')
+            .then(response => response.json())
+            .then(data => {
+                examples = data;
+            });
+
+        document.getElementById('predictBtn').addEventListener('click', analyzeMessage);
+        document.getElementById('clearBtn').addEventListener('click', clearResults);
+        document.getElementById('exampleBtn').addEventListener('click', toggleExamples);
+        
+        // Allow Enter key to trigger analysis
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                analyzeMessage();
+            }
+        });
+
+        function analyzeMessage() {
+            const message = document.getElementById('messageInput').value.trim();
+            const btn = document.getElementById('predictBtn');
+            
+            if (!message) {
+                alert('Please enter a message to analyze.');
+                return;
+            }
+
+            // Show loading state
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...';
+            btn.disabled = true;
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                displayResults(data);
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            })
+            .finally(() => {
+                btn.innerHTML = '<i class="fas fa-shield-alt mr-2"></i>Analyze Message';
+                btn.disabled = false;
+            });
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const predictionDiv = document.getElementById('predictionResult');
+            const spamWordsDiv = document.getElementById('spamWords');
+            const messageStatsDiv = document.getElementById('messageStats');
+            const importantWordsDiv = document.getElementById('importantWords');
+
+            // Show results section
+            resultsDiv.classList.remove('hidden');
+
+            // Display prediction with appropriate styling
+            const isSpam = data.prediction === 'SPAM';
+            predictionDiv.className = `mb-6 p-4 rounded-lg ${isSpam ? 'bg-red-100 border-red-300' : 'bg-green-100 border-green-300'} border-2`;
+            
+            predictionDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${isSpam ? 'fa-exclamation-triangle text-red-600' : 'fa-check-circle text-green-600'} text-2xl mr-3"></i>
+                    <div>
+                        <div class="text-xl font-bold ${isSpam ? 'text-red-800' : 'text-green-800'}">
+                            ${data.prediction}
+                        </div>
+                        <div class="text-sm ${isSpam ? 'text-red-600' : 'text-green-600'}">
+                            Confidence: ${data.confidence}% | Spam Probability: ${data.spam_probability}%
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Display spam words found
+            if (data.processed_words.length > 0) {
+                spamWordsDiv.innerHTML = data.processed_words.map(word => 
+                    `<span class="inline-block bg-red-200 text-red-800 px-2 py-1 rounded text-xs mr-1 mb-1">${word}</span>`
+                ).join('');
+            } else {
+                spamWordsDiv.innerHTML = '<span class="text-gray-500">No spam words detected</span>';
+            }
+
+            // Display message statistics
+            messageStatsDiv.innerHTML = `
+                <div class="space-y-1">
+                    <div>Total Words: <span class="font-medium">${data.message_length}</span></div>
+                    <div>Spam Words Found: <span class="font-medium">${data.spam_words_found}</span></div>
+                    <div>Spam Ratio: <span class="font-medium">${data.message_length > 0 ? Math.round((data.spam_words_found / data.message_length) * 100) : 0}%</span></div>
+                </div>
+            `;
+
+            // Display important words
+            if (data.important_words.length > 0) {
+                importantWordsDiv.innerHTML = data.important_words.map(item => 
+                    `<div class="flex justify-between items-center py-1">
+                        <span class="font-medium">${item.word}</span>
+                        <span class="text-gray-600">${item.score}</span>
+                    </div>`
+                ).join('');
+            } else {
+                importantWordsDiv.innerHTML = '<span class="text-gray-500">No significant words found</span>';
+            }
+
+            // Scroll to results
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearResults() {
+            document.getElementById('messageInput').value = '';
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('examplesSection').classList.add('hidden');
+        }
+
+        function toggleExamples() {
+            const examplesSection = document.getElementById('examplesSection');
+            const spamExamplesDiv = document.getElementById('spamExamples');
+            const legitimateExamplesDiv = document.getElementById('legitimateExamples');
+
+            if (examplesSection.classList.contains('hidden')) {
+                // Populate examples
+                spamExamplesDiv.innerHTML = examples.spam?.map(msg => 
+                    `<button class="text-left w-full p-2 bg-red-50 hover:bg-red-100 rounded border text-sm example-btn" data-message="${msg}">
+                        "${msg}"
+                    </button>`
+                ).join('') || '';
+
+                legitimateExamplesDiv.innerHTML = examples.not_spam?.map(msg => 
+                    `<button class="text-left w-full p-2 bg-green-50 hover:bg-green-100 rounded border text-sm example-btn" data-message="${msg}">
+                        "${msg}"
+                    </button>`
+                ).join('') || '';
+
+                // Add click handlers for example buttons
+                document.querySelectorAll('.example-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.getElementById('messageInput').value = this.dataset.message;
+                        examplesSection.classList.add('hidden');
+                    });
+                });
+
+                examplesSection.classList.remove('hidden');
+                examplesSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                examplesSection.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
